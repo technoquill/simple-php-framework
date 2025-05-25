@@ -1,9 +1,9 @@
+.idea
 ###
 vendor
-app
 tests
 runtime
 
 ###
-tests/.env
+.env
 composer.lock
