@@ -1,0 +1,37 @@
+{
+  "name": "technoquill/simple-php-framework",
+  "description": "Let's try with Simple PHP Framework",
+  "type": "library",
+  "require": {
+    "php": ">=8.1",
+    "symfony/error-handler": "^6.1 || ^7.0",
+    "vlucas/phpdotenv": "^5.6",
+    "twig/twig": "^3.21"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "Technoquill\\Framework\\": "src/"
+    },
+    "files": [
+      "src/Support/Helper/functions.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "symfony/var-dumper": "^7.2",
+    "phpunit/phpunit": "^9.5"
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "Technoquill\\Framework\\App\\Installer::postInstall"
+    ],
+    "post-create-project-cmd": [
+      "Technoquill\\Framework\\App\\Installer::postInstall"
+    ]
+  }
+}

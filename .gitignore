@@ -1,0 +1,9 @@
+###
+vendor
+app
+tests
+runtime
+
+###
+tests/.env
+composer.lock
