@@ -37,7 +37,7 @@ if (!function_exists('app')) {
                 public function __construct()
                 {
                     $this->name = config('app.app_name');
-                    $this->version= config('app.app_version');
+                    $this->version = config('app.app_version');
                     $this->url = config('app.app_url');
                     $this->env = config('app.app_env');
                     $this->charset = config('app.app_charset');
@@ -81,12 +81,17 @@ if (!function_exists('config')) {
 
 
 if (!function_exists('view')) {
+
     /**
-     * @throws ReflectionException
+     * @return View
      */
     function view(): View
     {
-        return container()->get(View::class);
+        try {
+            return container()->get(View::class);
+        } catch (ReflectionException $exception) {
+        }
+
     }
 }
 

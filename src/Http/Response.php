@@ -136,4 +136,5 @@ final class Response
         }
         echo $this->content;
     }
+
 }

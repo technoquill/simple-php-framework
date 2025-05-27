@@ -11,7 +11,6 @@ use Technoquill\Framework\Config\Config;
 use Technoquill\Framework\Container\Container;
 use Technoquill\Framework\Error\ErrorHandler;
 use Technoquill\Framework\Event\EventDispatcher;
-use Technoquill\Framework\Http\Middleware\Middleware;
 use Technoquill\Framework\Http\Request;
 use Technoquill\Framework\Http\Response;
 use Technoquill\Framework\Logger\Logger;
@@ -46,7 +45,6 @@ final class AppFactory
         // add base services to container
         $container->set(Request::class, fn() => Request::createFromGlobals());
         $container->set(Response::class, fn() => new Response());
-        $container->set(Middleware::class, fn() => new Middleware());
         $container->set(Router::class, fn() => new Router());
         $container->set(ErrorHandler::class, fn() => new ErrorHandler());
         $container->set(Logger::class, fn() => new Logger());

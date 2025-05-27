@@ -6,6 +6,10 @@ namespace Technoquill\Framework\Router;
 use DeepCopy\Exception\PropertyException;
 use RuntimeException;
 use InvalidArgumentException;
+use Technoquill\Framework\Container\Container;
+use Technoquill\Framework\Contract\MiddlewareInterface;
+use Technoquill\Framework\Http\Request;
+use Technoquill\Framework\Http\Response;
 use Technoquill\Framework\Support\Traits\Macroable;
 
 /**
@@ -227,6 +231,27 @@ final class Router
      * @param string $uri The path to match against the registered routes.
      * @return array|null The route handler if a matching route is found, or null if no match exists.
      */
+//    public function dispatch(string $method, string $uri): ?array
+//    {
+//        $method = strtoupper($method);
+//        $routes = $this->routes[$method] ?? [];
+//
+//        foreach ($routes as $route) {
+//            if (preg_match($route['pattern'], $uri, $matches)) {
+//                // Discard numeric keys, leave only named ones
+//                $params = array_filter(
+//                    $matches,
+//                    static fn($k) => !is_int($k),
+//                    ARRAY_FILTER_USE_KEY
+//                );
+//
+//                return [$route['handler'], $params];
+//            }
+//        }
+//        return null;
+//    }
+
+
     public function dispatch(string $method, string $uri): ?array
     {
         $method = strtoupper($method);
@@ -234,13 +259,12 @@ final class Router
 
         foreach ($routes as $route) {
             if (preg_match($route['pattern'], $uri, $matches)) {
-                // Discard numeric keys, leave only named ones
                 $params = array_filter(
                     $matches,
                     static fn($k) => !is_int($k),
                     ARRAY_FILTER_USE_KEY
                 );
-                return [$route['handler'], $params];
+                return [$route['handler'], $route['middleware'] ?? [], $params];
             }
         }
         return null;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Http\Controllers\HomeController;
 use App\Services\HomePageService;
 use Technoquill\Framework\Container\Container;
+use Technoquill\Framework\Middleware\AuthMiddleware;
 use Technoquill\Framework\Router\Router;
 
 /** @var Router $router */
@@ -30,7 +31,8 @@ $router->get(path: '/', handler: [HomeController::class, 'index'])->name('home.i
 
 
 // --------- HomeController::license
-$router->get(path: '/license', handler: [HomeController::class, 'license'])->name('home.license');
+$router->get(path: '/license', handler: [HomeController::class, 'license'])->name('home.license')
+    ->middleware([AuthMiddleware::class]);
 
 //$router->get('/license', function () use ($container) {
 //    return $container->get(HomeController::class)->license();
