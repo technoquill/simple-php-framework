@@ -98,7 +98,7 @@ return [
                 'assets_path' => base_path() . '/resources/templates/default/config',
                 'errors_path' => base_path() . '/resources/templates/default/views/errors',
                 'layout' => 'default',
-                'use_layout' => false,
+                'use_layout' => true,
                 'cache' => false,
             ],
             'admin' => [

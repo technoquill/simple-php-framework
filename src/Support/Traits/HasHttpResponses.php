@@ -3,11 +3,12 @@ declare(strict_types=1);
 
 namespace Technoquill\Framework\Support\Traits;
 
-use ReflectionException;
+
 use Technoquill\Framework\Http\Response;
 
 trait HasHttpResponses
 {
+
 
     /**
      * @param string $message
@@ -17,7 +18,7 @@ trait HasHttpResponses
     protected function errorResponse(string $message = 'Something went wrong.', int $status = 500): Response
     {
         return new Response(
-            view()->render("errors/{$status}", [
+            view()->render("errors/errors", [
                 'error' => $status,
                 'message' => $message
             ]),

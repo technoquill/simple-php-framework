@@ -10,7 +10,9 @@ use Technoquill\Framework\Support\Resolver\TemplateResolver;
 final class View
 {
 
+    /** @var TemplateResolver  */
     protected TemplateResolver $resolver;
+
 
     /**
      * @param TemplateResolver $resolver
@@ -87,6 +89,7 @@ final class View
         $file = $this->resolver->getViewsPath() . '/' . $route . '.php';
         return $this->renderFile($file, $params);
     }
+
 
 
     /**

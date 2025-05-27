@@ -6,7 +6,7 @@ namespace Technoquill\Framework\Middleware;
 use Technoquill\Framework\Contract\MiddlewareInterface;
 use Technoquill\Framework\Http\Request;
 use Technoquill\Framework\Http\Response;
-use Technoquill\Framework\View\View;
+use Technoquill\Framework\Support\Traits\HasHttpResponses;
 use Throwable;
 
 /**
@@ -20,22 +20,25 @@ use Throwable;
  */
 class ErrorHandlerMiddleware implements MiddlewareInterface
 {
-    public function __construct(private ?View $view = null) {}
+
+    use HasHttpResponses;
 
     public function handle(Request $request, callable $next): Response
     {
         try {
-            return $next($request);
+            $response = $next($request);
+            if (!$response instanceof Response) {
+                return $this->notFound();
+            }
+            return $response;
         } catch (Throwable $e) {
             $status = $e->getCode();
+
             if ($status < 400 || $status > 599) {
                 $status = 500;
             }
             $message = (getenv('APP_DEBUG') === 'true') ? $e->getMessage() : 'Internal Server Error';
-            $content = $this->view
-                ? $this->view->render('errors/' . $status, ['error' => $status, 'message' => $message])
-                : $message;
-            return new Response($content, $status);
+            return  $this->errorResponse($message, $status);
         }
     }
 }

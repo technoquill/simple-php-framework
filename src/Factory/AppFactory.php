@@ -17,6 +17,7 @@ use Technoquill\Framework\Logger\Logger;
 use Technoquill\Framework\Router\Router;
 use Technoquill\Framework\Support\Resolver\TemplateResolver;
 use Technoquill\Framework\View\View;
+use Technoquill\Framework\View\ViewContext;
 
 /**
  * Factory class responsible for creating and configuring an instance of the application.
@@ -52,7 +53,9 @@ final class AppFactory
         $container->set(TemplateResolver::class, fn() => new TemplateResolver(
             config: $config, request: $container->get(Request::class)
         ));
-        $container->set(View::class, fn() => new View($container->get(TemplateResolver::class)));
+        $container->set(View::class, fn() => new View(
+            $container->get(TemplateResolver::class)
+        ));
         $container->set(Asset::class, fn() => new Asset(view: $container->get(View::class)));
 
         /** @var Router  $router */
