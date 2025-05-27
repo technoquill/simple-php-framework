@@ -10,6 +10,16 @@ use Technoquill\Framework\Router\Router;
 /** @var Container $container */
 
 
+
+//$router->group(['prefix' => '/shop', 'middleware' => []], function ($router) {
+//    $router->group(['prefix' => '/category', 'middleware' => ['auth', 'access']], function ($router) {
+//        $router->get(path: '/laptops', handler: [HomeController::class, 'index'])->name('shop.category.laptops');
+//        $router->get(path: '/smartphones', handler: [HomeController::class, 'index'])->name('shop.category.smartphones');
+//    });
+//});
+//
+//$router->post(path: '/data', handler: [HomeController::class, 'index'])->name('data');
+
 // --------- HomeController::index
 
 $router->get(path: '/', handler: [HomeController::class, 'index'])->name('home.index');
@@ -20,17 +30,16 @@ $router->get(path: '/', handler: [HomeController::class, 'index'])->name('home.i
 
 
 // --------- HomeController::license
-//$router->get(path: '/license', handler: [HomeController::class, 'license'])
-//->name('home.license')->theme('default');
+$router->get(path: '/license', handler: [HomeController::class, 'license'])->name('home.license');
 
-$router->get('/license', function () use ($container) {
-    return $container->get(HomeController::class)->license();
-})->name('home.license');
+//$router->get('/license', function () use ($container) {
+//    return $container->get(HomeController::class)->license();
+//})->name('home.license');
 
 
 // --------- HomeController::license
 //$router->get(path: '/welcome/{name}', handler: [HomeController::class, 'welcome'])
-//->name('home.welcome')->theme('default');
+//    ->name('home.welcome');
 
 $router->get('/welcome/{name}', function (HomePageService $service) use ($container) {
     return $container->get(HomeController::class)->setParams([

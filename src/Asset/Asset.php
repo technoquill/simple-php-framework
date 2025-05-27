@@ -5,6 +5,7 @@ namespace Technoquill\Framework\Asset;
 
 
 use JsonException;
+use Technoquill\Framework\Exceptions\FileNotFoundException;
 use Technoquill\Framework\View\View;
 use Technoquill\Framework\Support\Helper\Html;
 
@@ -20,7 +21,7 @@ final class Asset
     /** @var View */
     protected View $view;
 
-    /** @var string  */
+    /** @var string */
     private const REGEX_URL = "^(http|https)://[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,3}(/\S*)?^";
 
 
@@ -31,20 +32,27 @@ final class Asset
     public function __construct(View $view)
     {
         $this->view = $view;
-        $this->load();
+        $this->setAssets();
     }
 
+
     /**
-     * @return void
      * @throws JsonException
      */
-    protected function load(): void
+    private function setAssets(): void
     {
         $asset = $this->view->getAssetPath() . '/' . 'asset.json';
         if (file_exists($asset)) {
             $list = json_decode(file_get_contents($asset), true, 512, JSON_THROW_ON_ERROR);
-            $this->assets = $this->normalizeItems($list ?? []);
+            foreach ($list as $key => $item) {
+                if (!$this->isExternalUrl($item['url']) && !file_exists($this->publicAssetsPath() . "/" . $item['url'])) {
+                    unset($list[$key]);
+                }
+            }
+        } else {
+            throw new FileNotFoundException('asset.json');
         }
+        $this->assets = $this->normalizeItems($list);
     }
 
     /**
@@ -83,10 +91,13 @@ final class Asset
         if (str_starts_with($url, '/')) {
             $url = ltrim($url, '/');
         }
-        return $this->relativePath() . '/' . $url;
+        return $this->publicRelativeAssetsPath() . '/' . $url;
     }
 
 
+    /**
+     * @return string
+     */
     private function renderLinkDefinitions(): string
     {
         $render = '';
@@ -104,6 +115,9 @@ final class Asset
     }
 
 
+    /**
+     * @return string
+     */
     private function renderScriptDefinitions(): string
     {
         $render = '';
@@ -146,22 +160,30 @@ final class Asset
      */
     private function normalizeUrl(string $url): string
     {
-        if(!str_starts_with($url, '//') && str_starts_with($url, '/')) {
+        if (!str_starts_with($url, '//') && str_starts_with($url, '/')) {
             $url = ltrim($url, '/');
         }
-        if(preg_match(self::REGEX_URL, $url) || str_starts_with($url, '//')) {
-            return  $url;
+        //if(preg_match(self::REGEX_URL, $url) || str_starts_with($url, '//')) {
+        if ($this->isExternalUrl($url)) {
+            return $url;
         }
-        return $this->relativePath() . "/" . $url;
+        return $this->publicRelativeAssetsPath() . "/" . $url;
+    }
+
+    private function isExternalUrl(string $url): bool
+    {
+        return preg_match(self::REGEX_URL, $url) || str_starts_with($url, '//');
+    }
+
+    private function publicRelativeAssetsPath(): string
+    {
+        return '/assets/' . $this->view->getTemplate();
     }
 
 
-    /**
-     * @return string
-     */
-    private function relativePath(): string
+    private function publicAssetsPath(): string
     {
-        return str_replace(base_path() . '/resources', '', $this->view->getAssetPath());
+        return base_path() . '/public/assets/' . $this->view->getTemplate();
     }
 
 

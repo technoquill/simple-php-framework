@@ -5,7 +5,7 @@ namespace Technoquill\Framework\Support\Resolver;
 
 use BadMethodCallException;
 use Technoquill\Framework\Config\Config;
-use Technoquill\Framework\Exceptions\ThemeNotFoundException;
+use Technoquill\Framework\Exceptions\TemplateNotFoundException;
 use Technoquill\Framework\Http\Request;
 
 
@@ -110,7 +110,7 @@ final class TemplateResolver
                 return;
             }
         }
-        throw new ThemeNotFoundException("No theme matched for uri [$uri]");
+        throw new TemplateNotFoundException("No theme matched for uri [$uri]");
     }
 
 }

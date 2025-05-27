@@ -25,21 +25,23 @@ if (!function_exists('app')) {
     function app(): object
     {
         try {
-            return new class(config()->get('app')) {
+            return new class() {
+
                 public string $name = '';
                 public string $version = '';
                 public string $url = '';
                 public string $env = '';
                 public string $charset = '';
                 public string $lang = '';
-                public function __construct(array $appConfig)
+
+                public function __construct()
                 {
-                    $this->name = $appConfig['app_name'];
-                    $this->version= $appConfig['app_version'];
-                    $this->url = $appConfig['app_url'];
-                    $this->env = $appConfig['app_env'];
-                    $this->charset = $appConfig['app_charset'];
-                    $this->lang = $appConfig['app_lang'];
+                    $this->name = config('app.app_name');
+                    $this->version= config('app.app_version');
+                    $this->url = config('app.app_url');
+                    $this->env = config('app.app_env');
+                    $this->charset = config('app.app_charset');
+                    $this->lang = config('app.app_lang');
                 }
             };
 
@@ -71,9 +73,9 @@ if (!function_exists('config')) {
     /**
      * @throws ReflectionException
      */
-    function config(): Config
+    function config(string $name): string
     {
-        return container()->get(Config::class);
+        return container()->get(Config::class)->get($name);
     }
 }
 

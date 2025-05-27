@@ -20,12 +20,6 @@ class RouteDefinition
     /** @var string|null  */
     protected ?string $name = null;
 
-    /** @var string|null  */
-    protected ?string $theme = null;
-
-    /** @var string|null  */
-    protected ?string $layout = null;
-
     /** @var array  */
     protected array $middleware = [];
 
@@ -45,6 +39,11 @@ class RouteDefinition
         $this->handler = $handler;
     }
 
+    public function get(string $definition)
+    {
+        return $this->$definition;
+    }
+
     /**
      * Sets the name property and returns the current instance.
      *
@@ -58,28 +57,6 @@ class RouteDefinition
         return $this;
     }
 
-    /**
-     * Sets the theme for the object and returns the current instance.
-     *
-     * @param string $theme The theme name or identifier to be assigned.
-     *
-     * @return self Returns the current instance after setting the theme.
-     */
-    public function theme(string $theme): self
-    {
-        $this->theme = $theme;
-        return $this;
-    }
-
-    /**
-     * @param string $layout
-     * @return $this
-     */
-    public function layout(string $layout): self
-    {
-        $this->layout = $layout;
-        return $this;
-    }
 
     /**
      * Sets middleware for the current instance.
@@ -108,8 +85,6 @@ class RouteDefinition
             'path' => $this->path,
             'handler' => $this->handler,
             'name' => $this->name,
-            'theme' => $this->theme,
-            'layout' => $this->layout,
             'middleware' => $this->middleware,
         ];
     }

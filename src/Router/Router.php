@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Technoquill\Framework\Router;
 
+use DeepCopy\Exception\PropertyException;
 use RuntimeException;
 use InvalidArgumentException;
 use Technoquill\Framework\Support\Traits\Macroable;
@@ -25,6 +26,12 @@ final class Router
 
     /** @var array */
     protected static array $cachedNamedRoutes = [];
+
+    /** @var array  */
+    protected array $groupStack = [];
+
+    /** @var array  */
+    protected array $routeDefinition = [];
 
     /** @var string[] */
     protected const HTTP_REQUEST_METHODS = [
@@ -79,6 +86,66 @@ final class Router
         return $pattern;
     }
 
+
+    /**
+     * @param array $options
+     * @param callable $callback
+     * @throws PropertyException
+     */
+    public function group(array $options, callable $callback): void
+    {
+        if(!array_key_exists('prefix', $options)) {
+            throw new PropertyException('You need to init $options[prefix] key value');
+        }
+        $this->groupStack[] = $options;
+        $callback($this);
+        array_pop($this->groupStack);
+
+    }
+
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    protected function buildFullPath(string $path): string
+    {
+        $prefix = '';
+        foreach ($this->groupStack as $group) {
+            if (!empty($group['prefix'])) {
+                $prefix .= '/' . trim($group['prefix'], '/');
+            }
+        }
+        $fullPath = $prefix . '/' . ltrim($path, '/');
+        return '/' . ltrim($fullPath, '/'); // Захист від зайвих слешів
+    }
+
+    /**
+     * @return array
+     */
+    protected function getGroupOptions(): array
+    {
+        $merged = [
+            'middleware' => [],
+        ];
+
+        foreach ($this->groupStack as $group) {
+            // Merge middleware as an array
+            if (isset($group['middleware'])) {
+                $merged['middleware'] = array_merge($merged['middleware'], (array)$group['middleware']);
+            }
+            // Other keys (override)
+            foreach ($group as $key => $value) {
+                if ($key === 'middleware') {
+                    continue;
+                }
+                $merged[$key] = $value;
+            }
+        }
+
+        return $merged;
+    }
+
     /**
      * Adds a route with the specified HTTP method, path, and handler function to the routing table.
      *
@@ -89,12 +156,13 @@ final class Router
      */
     public function add(string $method, string $path, callable|array|string $handler): RouteDefinition
     {
-        $path = '/' . ltrim(trim($path), '/');
+        $groupOptions = $this->getGroupOptions();
+        $path = $this->buildFullPath($path); //(isset($options['prefix']) ? rtrim($options['prefix'], '/') : '') . '/' . ltrim($path, '/');
+
         $method = strtoupper($method);
 
         if (is_string($handler) && str_contains($handler, '@')) {
             [$class, $methodName] = explode('@', $handler, 2);
-
             if (!str_contains($class, '\\')) {
                 $class = 'App\\Http\\Controllers\\' . $class;
             }
@@ -102,41 +170,52 @@ final class Router
         }
 
         $routeDefinition = new RouteDefinition($method, $path, $handler);
-        $this->routes[] = $routeDefinition;
+
+        if (!empty($groupOptions['middleware'])) {
+            $routeDefinition->middleware($groupOptions['middleware']);
+        }
+//        if (!empty($options['name'])) {
+//            $routeDefinition->name($options['name']);
+//        }
+
+        $this->routeDefinition[] = $routeDefinition;
 
         return $routeDefinition;
     }
 
 
+    /**
+     * Registers and organizes the application's route definitions into a structured format
+     * for efficient matching and handling of requests. It converts route paths to regular
+     * expressions, caches named routes, and ensures no duplicate route names exist.
+     *
+     * @return self Returns the current instance for method chaining.
+     */
     public function routeRegister(): self
     {
-        foreach ($this->routes as $routeDefinition) {
+        foreach ($this->routeDefinition as $routeDefinition) {
             /** @var RouteDefinition $routeDefinition */
-            $definition = $routeDefinition->getDefinition();
-
-            // name, pattern, middleware, theme
-            $pattern = $this->convertToRegex($definition['path']);
-
             $route = [
-                'pattern' => $pattern,
-                'handler' => $definition['handler'],
-                'path' => $definition['path'],
-                'name' => $definition['name'],
-                'theme' => $definition['theme'],
-                'layout' => $definition['layout'],
-                'middleware' => $definition['middleware'],
+                'pattern' => $this->convertToRegex($routeDefinition->get('path')),
+                'method' => $routeDefinition->get('method'),
+                'path' => $routeDefinition->get('path'),
+                'handler' => $routeDefinition->get('handler'),
+                'name' => $routeDefinition->get('name'),
+                'middleware' => $routeDefinition->get('middleware')
             ];
-
-            $this->routes[$definition['method']][] = $route;
-
-            // Cache named
-            if ($definition['name']) {
-                if (isset(self::$cachedNamedRoutes[$definition['name']])) {
-                    throw new InvalidArgumentException("Route name [{$definition['name']}] already exists.");
+            $this->routes[$routeDefinition->get('method')][] = $route;
+            // Cached by name
+            if ($routeDefinition->get('name')) {
+                if (isset(self::$cachedNamedRoutes[$routeDefinition->get('name')])) {
+                    throw new InvalidArgumentException("Route name [{$routeDefinition->get('name')}] already exists.");
                 }
-                self::$cachedNamedRoutes[$definition['name']] = $route;
+                self::$cachedNamedRoutes[$routeDefinition->get('name')] = $route;
             }
         }
+
+//        dump($this->routes);
+//        dd(self::$cachedNamedRoutes);
+
         return $this;
     }
 
@@ -154,7 +233,6 @@ final class Router
         $routes = $this->routes[$method] ?? [];
 
         foreach ($routes as $route) {
-
             if (preg_match($route['pattern'], $uri, $matches)) {
                 // Discard numeric keys, leave only named ones
                 $params = array_filter(
@@ -168,6 +246,13 @@ final class Router
         return null;
     }
 
+    /**
+     * Converts a given path string into a regular expression pattern, where placeholders
+     * enclosed in curly braces are transformed into named capturing groups.
+     *
+     * @param string $path The input path containing placeholders to be converted.
+     * @return string The resulting regular expression pattern.
+     */
     private function convertToRegex(string $path): string
     {
         return '#^' . preg_replace('#\{(\w+)\}#', '(?P<$1>[^/]+)', $path) . '$#';

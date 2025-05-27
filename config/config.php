@@ -118,6 +118,10 @@ return [
         'cache_lifetime' => 3600,
         'cache_extension' => '.php',
     ],
+    'asset' => [
+        'timestamp' => true,
+        'cache' => false
+    ],
     'storage' => [
         'default' => 'local',
         'disks' => [

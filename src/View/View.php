@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Technoquill\Framework\View;
 
 use RuntimeException;
+use Technoquill\Framework\Exceptions\FileNotFoundException;
 use Technoquill\Framework\Support\Resolver\TemplateResolver;
 
 final class View
@@ -28,6 +29,12 @@ final class View
         return $this->resolver->getAssetsPath();
     }
 
+
+    public function getTemplate(): string
+    {
+        return $this->resolver->getTemplate();
+    }
+
     /**
      * @param string $route
      * @param array $params
@@ -39,7 +46,7 @@ final class View
 
         // Checks is the template available
         if (!file_exists($templatePath)) {
-            throw new RuntimeException("View template file [$templatePath] not found.");
+            throw new FileNotFoundException($templatePath);
         }
 
         $content = $this->renderFile($templatePath, $params);
@@ -54,7 +61,7 @@ final class View
 
         // Checks is the layout available
         if (!file_exists($layoutPath)) {
-            throw new RuntimeException("Layout file [$layoutPath] not found.");
+            throw new FileNotFoundException($layoutPath);
         }
 
         // Render layout and content
@@ -93,7 +100,7 @@ final class View
     protected function renderFile(string $file, array $params): string
     {
         if (!file_exists($file)) {
-            throw new RuntimeException("View file [$file] not found.");
+            throw new FileNotFoundException($file);
         }
         extract($params, EXTR_SKIP);
 

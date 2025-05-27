@@ -19,7 +19,7 @@ declare(strict_types=1);
     */
     public function index(): Response
     {
-        return $this->render('default::home/index', [
+        return $this->render('home/index', [
             'title' => 'Simple PHP Framework!',
         ]);
     }

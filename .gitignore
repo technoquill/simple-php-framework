@@ -3,6 +3,8 @@
 vendor
 tests
 runtime
+public/assets/
+development
 
 ###
 .env

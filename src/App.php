@@ -18,7 +18,7 @@ use Technoquill\Framework\View\View;
 final class App
 {
 
-    public const VERSION = '0.3.3-alpha';
+    public const VERSION = '0.4.0-dev';
 
     /** @var Container */
     private Container $container;
